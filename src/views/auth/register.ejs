@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario - Parqueadero</title>
+    
+</head>
+<body>
+    <div class="container">
+        <h1>Crear Cuenta</h1>
+
+        <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+            <div class="errors">
+                <strong>Por favor, corrige los siguientes errores:</strong>
+                <ul>
+                    <% errors.forEach(function(error) { %>
+                        <li><%= error.msg %></li>
+                    <% }); %>
+                </ul>
+            </div>
+        <% } %>
+
+        <form action="/api/auth/register" method="POST">
+            <div class="form-group">
+                <label for="tipo_documento">Tipo de Documento:</label>
+                <select name="tipo_documento" id="tipo_documento" required>
+                    <option value="">Seleccione...</option>
+                    <option value="CC" <%= (typeof oldInput !== 'undefined' && oldInput.tipo_documento === 'CC') ? 'selected' : '' %>>Cédula de Ciudadanía</option>
+                    <option value="CE" <%= (typeof oldInput !== 'undefined' && oldInput.tipo_documento === 'CE') ? 'selected' : '' %>>Cédula de Extranjería</option>
+                    <option value="PASAPORTE" <%= (typeof oldInput !== 'undefined' && oldInput.tipo_documento === 'PASAPORTE') ? 'selected' : '' %>>Pasaporte</option>
+                    <option value="NIT" <%= (typeof oldInput !== 'undefined' && oldInput.tipo_documento === 'NIT') ? 'selected' : '' %>>NIT (Persona Jurídica)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="numero_documento">Número de Documento:</label>
+                <input type="text" id="numero_documento" name="numero_documento" value="<%= typeof oldInput !== 'undefined' ? oldInput.numero_documento : '' %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="primer_nombre">Primer Nombre:</label>
+                <input type="text" id="primer_nombre" name="primer_nombre" value="<%= typeof oldInput !== 'undefined' ? oldInput.primer_nombre : '' %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="segundo_nombre">Segundo Nombre (Opcional):</label>
+                <input type="text" id="segundo_nombre" name="segundo_nombre" value="<%= typeof oldInput !== 'undefined' ? oldInput.segundo_nombre : '' %>">
+            </div>
+
+            <div class="form-group">
+                <label for="primer_apellido">Primer Apellido:</label>
+                <input type="text" id="primer_apellido" name="primer_apellido" value="<%= typeof oldInput !== 'undefined' ? oldInput.primer_apellido : '' %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="segundo_apellido">Segundo Apellido (Opcional):</label>
+                <input type="text" id="segundo_apellido" name="segundo_apellido" value="<%= typeof oldInput !== 'undefined' ? oldInput.segundo_apellido : '' %>">
+            </div>
+
+            <div class="form-group">
+                <label for="correo_electronico">Correo Electrónico:</label>
+                <input type="email" id="correo_electronico" name="correo_electronico" value="<%= typeof oldInput !== 'undefined' ? oldInput.correo_electronico : '' %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="numero_celular">Número de Celular:</label>
+                <input type="tel" id="numero_celular" name="numero_celular" value="<%= typeof oldInput !== 'undefined' ? oldInput.numero_celular : '' %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="clave">Contraseña:</label>
+                <input type="password" id="clave" name="clave" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmar_clave">Confirmar Contraseña:</label>
+                <input type="password" id="confirmar_clave" name="confirmar_clave" required>
+                <small id="passwordHelp" style="display: none; color: red;">Las contraseñas no coinciden.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="perfil_id">Perfil de Usuario:</label>
+                <select name="perfil_id" id="perfil_id" required>
+                    <option value="">Seleccione un perfil</option>
+                    <!-- Estos valores deben coincidir con los IDs en tu tabla PERFIL_USUARIO -->
+                    <!-- Idealmente, estos se cargarían dinámicamente desde el controlador -->
+                    <option value="1" <%= (typeof oldInput !== 'undefined' && oldInput.perfil_id == '1') ? 'selected' : '' %>>Administrador</option>
+                    <option value="2" <%= (typeof oldInput !== 'undefined' && oldInput.perfil_id == '2') ? 'selected' : '' %>>Cliente</option>
+                    <!-- <option value="3">Operario</option> -->
+                </select>
+            </div>
+
+            <button type="submit" class="btn">Registrarse</button>
+        </form>
+
+        <p class="text-center mt-20">
+            ¿Ya tienes una cuenta? <a href="/api/auth/login">Inicia Sesión</a>
+        </p>
+    </div>
+
+    <script>
+        // Script simple para validar que las contraseñas coincidan (opcional, la validación fuerte debe ser en el backend)
+        const form = document.querySelector('form');
+        const claveInput = document.getElementById('clave');
+        const confirmarClaveInput = document.getElementById('confirmar_clave');
+        const passwordHelp = document.getElementById('passwordHelp');
+
+        form.addEventListener('submit', function(event) {
+            if (claveInput.value !== confirmarClaveInput.value) {
+                passwordHelp.style.display = 'block';
+                confirmarClaveInput.focus();
+                event.preventDefault(); // Detiene el envío del formulario
+            } else {
+                passwordHelp.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+Cambiar la política de ejecución a RemoteSigned
+Set-ExecutionPolicy RemoteSigned
+
+npm install --save-dev nodemon
+npm install mysql2
+npm install bcrypt
+npm install ejs
+npm install connect-flash
+npm install express

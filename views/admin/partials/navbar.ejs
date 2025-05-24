@@ -1,0 +1,16 @@
+<!-- views/admin/partials/navbar.ejs -->
+<nav class="navbar">
+    <div class="navbar-left">
+        <!-- Podrías tener un botón para colapsar/expandir el sidebar si lo implementas con JS -->
+        <!-- <button id="toggle-sidebar-btn" aria-label="Toggle sidebar">☰</button> -->
+     
+    </div>
+    <div class="navbar-right">
+        <% if (typeof user !== 'undefined' && user) { %>
+            <div class="user-info">
+                <span>Bienvenido/a, <%= user.nombre || user.username || 'Admin' %></span>
+                <a href="/api/auth/logout" class="btn btn-danger">Cerrar Sesión</a>
+            </div>
+        <% } %>
+    </div>
+</nav>

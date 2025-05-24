@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Asegúrate que estas rutas CSS son correctas según tu configuración de express.static -->
+  <link rel="stylesheet" href="/css/estilo.css" />
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" /> <!-- Actualizado a una versión más reciente de Font Awesome -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title><%= typeof title !== 'undefined' ? title : 'Escritorio' %></title>
+</head>
+
+<body>
+<header>
+    <!-- Usando tus parciales -->
+    <%- include('./partials/sidebar', { activeMenu: 'dashboard' }) %>
+    <%- include('./partials/navbar', { user: user, title: title }) %>
+</header>
+
+<main>
+  <div class="contenido-principal"><!-- Inicia el contenido principal -->
+    <div class="encabezado-principal">
+      <h1>Bienvenido Administrador <% if (typeof user !== 'undefined' && user) { %> <%= user.primer_nombre || user.username %> <% } %>!</h1>
+      <p>Gestiona el parqueadero de manera eficiente.</p>
+    </div>
+
+    <!-- Sección de Gráficos -->
+    <div class="contadores">
+      <div class="columnas">
+        <div class="contenedor-grafico card">
+           <div class="card-header">Movimiento Diario</div>
+           <div class="card-body">
+            <canvas id="graficoCircular"></canvas> <!-- Usado para Ingresos vs Salidas -->
+           </div>
+        </div>
+      </div>
+
+      <div class="columnas">
+        <div class="contenedor-grafico card">
+          <div class="card-header">Estado de Incidencias</div>
+           <div class="card-body">
+            <canvas id="graficoIncidencias"></canvas>
+           </div>
+        </div>
+      </div>
+
+      <div class="columnas">
+        <div class="contenedor-grafico card">
+          <div class="card-header">Vehículos Registrados por Tipo</div>
+           <div class="card-body">
+            <canvas id="GraficoTotalVehiculos"></canvas>
+           </div>
+        </div>
+      </div>
+    </div><!-- Finaliza contadores -->
+
+    <!-- Sección de Botones de Acción -->
+    <div class="caja-oscura">
+      <div class="columnas">
+        <div class="botonera">
+          <p>Registro rápido de usuarios y vehículos</p>
+          <button id="abrirModal" class="btn-agregar">
+            Agregar <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="columnas">
+        <div class="botonera">
+          <p>Exportar reportes detallados</p>
+          <button id="abrirModalExportar" class="btn-agregar"> <!-- ID cambiado -->
+            Exportar <i class="fa-solid fa-file-export"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="columnas">
+        <div class="botonera">
+          <p>Operar entradas y salidas de vehículos</p>
+          <button class="btn-operar"> <a class="white" href="/admin/operar"> <!-- Ruta actualizada -->
+           Operar S/E  <i class="fa-solid fa-building-shield"></i></a>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Zonas de Parqueo (Acordeones) -->
+    <div class="contenedor">
+      <!-- Parqueadero Principal: Gestión por Celdas/Tipos -->
+      <div class="tarjeta-base">
+          <div class="encabezado_general">
+              <h2 class="titulo-parqueadero">
+                  <i class="fa-solid fa-border-all"></i> Parqueadero Principal (Estado por Tipo de Celda)
+              </h2>
+              <p class="descripcion_parqueadero">
+                  Ocupación basada en la capacidad máxima configurada por tipo.
+              </p>
+          </div>
+          <hr class="linea-windows" />
+          <% if (typeof stats !== 'undefined' && stats) { %>
+              <div class="columna">
+                  <div class="encabezado-acordeon zona1">
+                      Celdas para Carros <i class="fa-solid fa-car-side"></i>
+                  </div>
+                  <div class="contenido-acordeon">
+                      <ul class="lista-grupo">
+                          <li>
+                              <% 
+                                let ocupacionCarrosPorcentaje = 0;
+                                if (stats.celdasCarroCapacidadMax > 0) {
+                                  ocupacionCarrosPorcentaje = ((stats.celdasCarroOcupadas / stats.celdasCarroCapacidadMax) * 100).toFixed(0);
+                                }
+                              %>
+                              Ocupación (<%= stats.celdasCarroOcupadas || 0 %> / <%= stats.celdasCarroCapacidadMax || 0 %>):
+                              <div class="barra-progreso">
+                                  <div class="barra-progreso-interna" style="width: <%= ocupacionCarrosPorcentaje %>%"></div>
+                              </div>
+                              <hr class="linea-windows" />
+                              <p><strong>Ocupadas:</strong> <%= stats.celdasCarroOcupadas || 0 %></p>
+                              <p>
+                                  <strong>Capacidad Máxima (Carros):</strong>
+                                  <input type="number" value="<%= stats.celdasCarroCapacidadMax || 0 %>" readonly />
+                              </p>
+                          </li>
+                      </ul>
+                  </div>
+              </div>
+
+              <div class="columna">
+                  <div class="encabezado-acordeon zona1">
+                      Celdas para Motos <i class="fa-solid fa-motorcycle"></i>
+                  </div>
+                  <div class="contenido-acordeon">
+                      <ul class="lista-grupo">
+                          <li>
+                              <% 
+                                let ocupacionMotosPorcentaje = 0;
+                                if (stats.celdasMotoCapacidadMax > 0) {
+                                  ocupacionMotosPorcentaje = ((stats.celdasMotoOcupadas / stats.celdasMotoCapacidadMax) * 100).toFixed(0);
+                                }
+                              %>
+                              Ocupación (<%= stats.celdasMotoOcupadas || 0 %> / <%= stats.celdasMotoCapacidadMax || 0 %>):
+                              <div class="barra-progreso">
+                                  <div class="barra-progreso-interna" style="width: <%= ocupacionMotosPorcentaje %>%"></div>
+                              </div>
+                              <hr class="linea-windows" />
+                              <p><strong>Ocupadas:</strong> <%= stats.celdasMotoOcupadas || 0 %></p>
+                              <p>
+                                  <strong>Capacidad Máxima (Motos):</strong>
+                                  <input type="number" value="<%= stats.celdasMotoCapacidadMax || 0 %>" readonly />
+                              </p>
+                          </li>
+                      </ul>
+                  </div>
+              </div>
+
+              <% if (typeof stats.celdasInstitucionalCapacidadMax !== 'undefined' && (stats.celdasInstitucionalCapacidadMax > 0 || stats.celdasInstitucionalOcupadas > 0)) { %>
+              <div class="columna">
+                  <div class="encabezado-acordeon zona1">
+                      Celdas Institucionales <i class="fa-solid fa-building-columns"></i>
+                  </div>
+                  <div class="contenido-acordeon">
+                      <ul class="lista-grupo">
+                          <li>
+                              <% 
+                                let ocupacionInstitucionalPorcentaje = 0;
+                                if (stats.celdasInstitucionalCapacidadMax > 0) {
+                                  ocupacionInstitucionalPorcentaje = ((stats.celdasInstitucionalOcupadas / stats.celdasInstitucionalCapacidadMax) * 100).toFixed(0);
+                                }
+                              %>
+                              Ocupación (<%= stats.celdasInstitucionalOcupadas || 0 %> / <%= stats.celdasInstitucionalCapacidadMax || 0 %>):
+                              <div class="barra-progreso">
+                                  <div class="barra-progreso-interna" style="width: <%= ocupacionInstitucionalPorcentaje %>%"></div>
+                              </div>
+                              <hr class="linea-windows" />
+                              <p><strong>Ocupadas:</strong> <%= stats.celdasInstitucionalOcupadas || 0 %></p>
+                              <p>
+                                  <strong>Capacidad Máxima (Institucional):</strong>
+                                  <input type="number" value="<%= stats.celdasInstitucionalCapacidadMax || 0 %>" readonly />
+                              </p>
+                          </li>
+                      </ul>
+                  </div>
+              </div>
+              <% } %>
+          <% } else { %>
+            <p class="columna">Datos de celdas no disponibles.</p>
+          <% } %>
+      </div>
+
+      <!-- Parqueadero Anexo (Gestión por Zonas) - Ejemplo Estático -->
+      <!-- Este sección está oculta por defecto (`style="display: none;"`) porque no tenemos datos dinámicos específicos para un "Parqueadero 2" desde la DB actual. -->
+      <!-- Si modificas tu DB para tener múltiples parqueaderos con zonas y capacidades, puedes mostrar esto y adaptarlo. -->
+      <div class="tarjeta-base" style="display: none;"> 
+           <div class="encabezado_general">
+              <h2 class="titulo-parqueadero">
+                  <i class="fa-solid fa-layer-group"></i> Parqueadero Anexo (Gestión por Zonas)
+              </h2>
+              <p class="descripcion_parqueadero">
+                  Disponibilidad por zona con capacidad definida. (Datos de ejemplo)
+              </p>
+          </div>
+          <hr class="linea-windows" />
+          <!-- Zona Carros (Parqueadero 2 - Ejemplo) -->
+          <div class="columna">
+              <div class="encabezado-acordeon zona2">
+                  Zona Carros <i class="fa-solid fa-car-side"></i>
+              </div>
+              <div class="contenido-acordeon">
+                  <ul class="lista-grupo">
+                      <li>
+                          Disponibilidad (10 / 25): <!-- Datos de ejemplo -->
+                          <div class="barra-progreso">
+                              <div class="barra-progreso-interna" style="width: 40%"></div>
+                          </div>
+                          <hr class="linea-windows" />
+                          <p><strong>Ocupadas:</strong> 10</p>
+                          <p>
+                              <strong>Capacidad Máxima:</strong>
+                              <input type="number" value="25" readonly />
+                          </p>
+                      </li>
+                  </ul>
+              </div>
+          </div>
+          <!-- Zona Motos (Parqueadero 2 - Ejemplo) -->
+          <div class="columna">
+              <div class="encabezado-acordeon zona2">
+                  Zona Motos <i class="fa-solid fa-motorcycle"></i>
+              </div>
+              <div class="contenido-acordeon">
+                  <ul class="lista-grupo">
+                      <li>
+                          Disponibilidad (5 / 15): <!-- Datos de ejemplo -->
+                          <div class="barra-progreso">
+                              <div class="barra-progreso-interna" style="width: 33%"></div>
+                          </div>
+                          <hr class="linea-windows" />
+                          <p><strong>Ocupadas:</strong> 5</p>
+                          <p>
+                              <strong>Capacidad Máxima:</strong>
+                              <input type="number" value="15" readonly />
+                          </p>
+                      </li>
+                  </ul>
+              </div>
+          </div>
+      </div>
+    </div><!-- Final del Contenedor de Zonas -->
+
+    <!-- Modal para Crear Usuario -->
+    <div id="modal" class="modal">
+      <div class="contenido-modal">
+        <div class="encabezado-modal">
+          <h2>Crear nuevo usuario</h2>
+        </div>
+        <hr class="linea-windows" />
+        <div class="cuerpo-modal">
+          <form action="/admin/usuarios" method="POST" class="formulario">
+            <fieldset>
+              <legend>Datos del Usuario</legend>
+              <div class="form-grid">
+                <div>
+                  <label for="p_nombre">Primer Nombre:</label>
+                  <input type="text" id="p_nombre" name="primer_nombre" required />
+                </div>
+                <div>
+                  <label for="s_nombre">Segundo Nombre:</label>
+                  <input type="text" id="s_nombre" name="segundo_nombre" />
+                </div>
+                <div>
+                  <label for="p_apellido">Primer Apellido:</label>
+                  <input type="text" id="p_apellido" name="primer_apellido" required />
+                </div>
+                <div>
+                  <label for="s_apellido">Segundo Apellido:</label>
+                  <input type="text" id="s_apellido" name="segundo_apellido" />
+                </div>
+                <div>
+                  <label for="tipo_documento">Tipo de documento</label>
+                  <select id="tipo_documento" name="tipo_documento" required>
+                    <option value="">Seleccione...</option>
+                    <option value="CC">Cédula Ciudadanía</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="CE">Cédula Extranjería</option>
+                    <option value="PA">Pasaporte</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="numero_documento">Número de documento:</label>
+                  <input type="text" id="numero_documento" name="numero_documento" required />
+                </div>
+                <div class="full-width">
+                  <label for="direccion_correo">E-mail:</label>
+                  <input type="email" id="direccion_correo" name="direccion_correo" required />
+                </div>
+                <div>
+                  <label for="numero_celular">Teléfono Celular:</label>
+                  <input type="text" id="numero_celular" name="numero_celular" required />
+                </div>
+                <div>
+                  <label for="clave">Contraseña:</label>
+                  <input type="password" id="clave" name="clave" required minlength="6" />
+                </div>
+                <div>
+                  <label for="perfil_id">Rol del Usuario</label>
+                  <select id="perfil_id" name="perfil_id" required>
+                    <option value="">Seleccione un rol...</option>
+                    <% if (typeof perfiles !== 'undefined' && perfiles) { %>
+                        <% perfiles.forEach(function(perfil) { %>
+                            <option value="<%= perfil.id %>"><%= perfil.perfil %></option>
+                        <% }); %>
+                    <% } else { %>
+                        <!-- Fallback si la variable perfiles no se pasa desde el backend -->
+                        <option value="1">Administrador (Ejemplo)</option>
+                        <option value="2">Operador (Ejemplo)</option>
+                    <% } %>
+                  </select>
+                </div>
+              </div>
+            </fieldset>
+            <div class="pie-modal">
+              <button type="submit" class="crear btn btn-success">Crear Usuario</button>
+              <button type="button" class="cerrar btn btn-secondary" id="cerrarModal">
+                <i class="fa-solid fa-xmark"></i> Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div> <!-- Aca termina el modal-->
+
+  </div><!-- Finaliza el contenido principal -->
+</main><!-- Finaliza el main -->
+
+<script>
+  // Script para el sidebar (expansión al pasar el mouse)
+  const sidebar = document.getElementById("sidebar");
+  const contenidoPrincipal = document.querySelector(".contenido-principal");
+
+  if (sidebar && contenidoPrincipal) {
+    sidebar.addEventListener("mouseenter", () => {
+      sidebar.classList.add("expanded");
+      // Ajusta el margen del contenido principal si el sidebar está fijo y afecta el layout
+      // Ejemplo: contenidoPrincipal.style.marginLeft = "250px"; // Ancho expandido del sidebar
+    });
+
+    sidebar.addEventListener("mouseleave", () => {
+      sidebar.classList.remove("expanded");
+      // Ejemplo: contenidoPrincipal.style.marginLeft = "60px"; // Ancho colapsado del sidebar
+    });
+  }
+
+  // Script para el Modal de Crear Usuario
+  const modal = document.getElementById("modal");
+  const abrirModalBtn = document.getElementById("abrirModal");
+  const cerrarModalBtn = document.getElementById("cerrarModal");
+
+  if (abrirModalBtn && modal && cerrarModalBtn) {
+    abrirModalBtn.addEventListener("click", (e) => {
+      e.preventDefault(); 
+      modal.style.display = "flex";
+      const form = modal.querySelector('form');
+      if (form) form.reset();
+    });
+
+    cerrarModalBtn.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    });
+  }
+
+  // Script para los Acordeones
+  document.querySelectorAll(".encabezado-acordeon").forEach((header) => {
+    header.addEventListener("click", () => {
+      const content = header.nextElementSibling;
+      if (content) {
+        header.classList.toggle('active'); 
+        content.style.display =
+          content.style.display === "block" ? "none" : "block";
+      }
+    });
+  });
+
+  // Script para el color de las Barras de Progreso
+  document.querySelectorAll(".barra-progreso-interna").forEach((bar) => {
+    const width = parseInt(bar.style.width); 
+    if (width <= 33) { 
+      bar.style.backgroundColor = "#28a745"; 
+    } else if (width <= 66) { 
+      bar.style.backgroundColor = "#ffc107"; 
+    } else { 
+      bar.style.backgroundColor = "#dc3545"; 
+    }
+  });
+
+  // Script para los Gráficos de Chart.js
+  document.addEventListener('DOMContentLoaded', function () {
+    // Asegúrate de que 'stats' esté disponible. Si se pasa desde el backend, ya estará en el scope.
+    // const stats = <%- JSON.stringify(stats || {}) %>; // Descomentar si necesitas parsear un JSON string.
+
+    // Gráfico Circular: Vehículos Ingresados vs Salidos (Hoy)
+    const ctxMovimientoDiario = document.getElementById("graficoCircular");
+    if (ctxMovimientoDiario && typeof stats !== 'undefined' && stats) {
+      new Chart(ctxMovimientoDiario.getContext("2d"), {
+        type: "doughnut",
+        data: {
+          labels: ["V. Ingresados Hoy", "V. Salidos Hoy"],
+          datasets: [{ data: [stats.vehiculosIngresadosHoy || 0, stats.vehiculosSalidosHoy || 0], backgroundColor: ["#3AA1F5", "#ff6384"], hoverOffset: 4 }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: "top" }, title: { display: true, text: "Movimiento Diario de Vehículos" } },
+        },
+      });
+    }
+
+    // Gráfico de Incidencias
+    const ctxIncidencias = document.getElementById("graficoIncidencias");
+    if (ctxIncidencias && typeof stats !== 'undefined' && stats) {
+      new Chart(ctxIncidencias.getContext("2d"), {
+        type: "pie",
+        data: {
+          labels: ["Con Incidencias", "Sin Incidencias"],
+          datasets: [{ label: "Incidencias", data: [stats.vehiculosConIncidencias || 0, stats.vehiculosSinIncidencias || 0], backgroundColor: ["#FF6384", "#36A2EB"], hoverOffset: 4 }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: "top" }, title: { display: true, text: "Estado de Incidencias" } },
+        },
+      });
+    }
+
+    // Gráfico Total de Vehículos por Tipo Registrado
+    const ctxTotalVehiculosTipo = document.getElementById("GraficoTotalVehiculos");
+    if (ctxTotalVehiculosTipo && typeof stats !== 'undefined' && stats) {
+      new Chart(ctxTotalVehiculosTipo.getContext("2d"), {
+        type: "bar",
+        data: {
+          labels: ["Carros", "Motos", "Institucionales"], 
+          datasets: [ {
+              label: "Total de vehículos registrados",
+              data: [stats.totalCarros || 0, stats.totalMotos || 0, stats.totalInstitucionales || 0],
+              backgroundColor: ["#4BC0C0", "#FFCE56", "#9966FF"], 
+            },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+          plugins: { legend: { display: false }, title: { display: true, text: "Distribución de Vehículos Registrados" } },
+        },
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

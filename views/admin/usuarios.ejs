@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/estilo.css">
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <!-- Chart.js no es necesario en esta vista específica, se puede quitar si no se usa aquí -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+</head>
+
+<body>
+  <%- include('./partials/sidebar', { activeMenu: activeMenu }) %>
+  <%- include('./partials/navbar', { user: user, title: title }) %>
+
+  <!-- Contenido Principal -->
+  <main class="contenido-principal">
+
+         <div class="encabezado-pagina mb-4">
+        <h1><%= title %></h1>
+        <button type="button" id="btnAbrirModalNuevoUsuario" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Añadir Usuario
+        
+        </button>
+          <div class="filtros-tabla mb-3">
+        <input type="text" id="filtroUsuarios" class="campo" placeholder="Filtrar usuarios por nombre, documento, correo...">
+      </div>
+
+  <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success" role="alert">
+          <%= success_msg %>
+        </div>
+      <% } %>
+      <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-danger" role="alert">
+          <%= error_msg %>
+        </div>
+      <% } %>
+      
+
+      </div>
+    <div class="contenedor">
+ 
+
+    
+    
+      <div class="card">
+        <div class="card-header">
+          Lista de Usuarios Registrados
+        </div>
+        <div class="card-body">
+          <% if (typeof usuarios !== 'undefined' && usuarios && usuarios.length > 0) { %>
+            <table class="tabla">
+              <thead>
+                <tr>
+                  <th>Nombre Completo</th>
+                  <th>Documento</th>
+                  <th>Correo Electrónico</th>
+                  <th>Celular</th>
+                  <th>Vehículos</th>
+                  <th>Perfil</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% usuarios.forEach(function(usuario) { %>
+                  <tr class="fila-usuario">
+                    <td>
+                      <%= usuario.primer_nombre %> <%= usuario.segundo_nombre ? usuario.segundo_nombre : '' %> <%= usuario.primer_apellido %> <%= usuario.segundo_apellido ? usuario.segundo_apellido : '' %>
+                    </td>
+                    <td>
+                      <%= usuario.tipo_documento %>: <%= usuario.numero_documento %>
+                    </td>
+                    <td>
+                      <%= usuario.direccion_correo %>
+                    </td>
+                    <td>
+                      <%= usuario.numero_celular %>
+                    </td>
+                    <td>
+                      <span class="badge <%= usuario.cantidad_vehiculos > 0 ? 'badge-info' : 'badge-secondary' %>"><%= usuario.cantidad_vehiculos %></span>
+                    </td>
+                    <td>
+                      <%= usuario.nombre_perfil %>
+                    </td>
+                    <td>
+                      <span class="badge <%= usuario.estado === 'activo' ? 'badge-success' : 'badge-danger' %>">
+                        <%= usuario.estado.charAt(0).toUpperCase() + usuario.estado.slice(1) %>
+                      </span>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-editar botones-min btnEditarUsuario" 
+                              data-id="<%= usuario.id_usuario %>" title="Editar">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <form action="/admin/usuarios/eliminar/<%= usuario.id_usuario %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">
+                        <button type="submit" class="btn botones-min btn-eliminar" title="Eliminar">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <p>No hay usuarios registrados.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal para Añadir Nuevo Usuario -->
+  <div id="addUsuarioModal" class="modal">
+    <div class="contenido-modal">
+      <div class="encabezado-modal">
+        <h2>Añadir Nuevo Usuario</h2>
+        <button type="button" class="cerrar-modal" data-modal-id="addUsuarioModal">&times;</button>
+      </div>
+      <hr class="linea-windows" />
+      <div class="cuerpo-modal">
+        <form action="/admin/usuarios" method="POST" class="formulario">
+          <fieldset>
+            <legend>Datos del Usuario</legend>
+            <div class="form-grid">
+              <div>
+                <label for="add_primer_nombre">Primer Nombre:</label>
+                <input type="text" id="add_primer_nombre" name="primer_nombre" required />
+              </div>
+              <div>
+                <label for="add_segundo_nombre">Segundo Nombre:</label>
+                <input type="text" id="add_segundo_nombre" name="segundo_nombre" />
+              </div>
+              <div>
+                <label for="add_primer_apellido">Primer Apellido:</label>
+                <input type="text" id="add_primer_apellido" name="primer_apellido" required />
+              </div>
+              <div>
+                <label for="add_segundo_apellido">Segundo Apellido:</label>
+                <input type="text" id="add_segundo_apellido" name="segundo_apellido" />
+              </div>
+              <div>
+                <label for="add_tipo_documento">Tipo de Documento:</label>
+                <select id="add_tipo_documento" name="tipo_documento" required>
+                  <option value="">Seleccione...</option>
+                  <option value="CC">Cédula Ciudadanía</option>
+                  <option value="CE">Cédula Extranjería</option>
+                  <option value="TI">Tarjeta de Identidad</option>
+                  <option value="PA">Pasaporte</option>
+                </select>
+              </div>
+              <div>
+                <label for="add_numero_documento">Número de Documento:</label>
+                <input type="text" id="add_numero_documento" name="numero_documento" required />
+              </div>
+              <div class="full-width">
+                <label for="add_direccion_correo">Correo Electrónico:</label>
+                <input type="email" id="add_direccion_correo" name="direccion_correo" required />
+              </div>
+              <div>
+                <label for="add_numero_celular">Número Celular:</label>
+                <input type="text" id="add_numero_celular" name="numero_celular" required />
+              </div>
+              <div>
+                <label for="add_clave">Contraseña:</label>
+                <input type="password" id="add_clave" name="clave" required minlength="6" />
+              </div>
+              <div>
+                <label for="add_perfil_id">Rol (Perfil):</label>
+                <select id="add_perfil_id" name="perfil_id" required>
+                  <option value="">Seleccione Rol...</option>
+                  <!-- Estos options se deberían cargar dinámicamente desde la DB -->
+                  <!-- Ejemplo: -->
+                  <% if (typeof perfiles !== 'undefined' && perfiles) { %>
+                    <% perfiles.forEach(function(perfil) { %>
+                      <option value="<%= perfil.id %>"><%= perfil.perfil %></option>
+                    <% }); %>
+                  <% } else { %>
+                    <!-- Fallback o datos de ejemplo si perfiles no se pasa -->
+                    <option value="1">Administrador (Ejemplo)</option>
+                    <option value="2">Operador (Ejemplo)</option>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="mt-3">
+            <legend>Añadir Vehículo (Opcional)</legend>
+            <div class="form-grid">
+              <div>
+                <label for="add_placa">Placa:</label>
+                <input type="text" id="add_placa" name="placa_vehiculo" />
+              </div>
+              <div>
+                <label for="add_marca">Marca:</label>
+                <input type="text" id="add_marca" name="marca_vehiculo" />
+              </div>
+              <div>
+                <label for="add_modelo">Modelo:</label>
+                <input type="text" id="add_modelo" name="modelo_vehiculo" />
+              </div>
+              <div>
+                <label for="add_color">Color:</label>
+                <input type="text" id="add_color" name="color_vehiculo" />
+              </div>
+              <div class="full-width">
+                <label for="add_tipo_vehiculo">Tipo de Vehículo:</label>
+                <select id="add_tipo_vehiculo" name="tipo_vehiculo">
+                  <option value="">Seleccione Tipo...</option>
+                  <option value="Carro">Carro</option>
+                  <option value="Moto">Moto</option>
+                  <option value="Bicicleta">Bicicleta</option>
+                  <option value="Institucional">Institucional</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+          <div class="pie-modal">
+            <button type="submit" class="btn btn-success">Guardar Usuario</button>
+            <button type="button" class="btn btn-secondary cerrar-modal" data-modal-id="addUsuarioModal">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Editar Usuario -->
+  <div id="editUsuarioModal" class="modal">
+    <div class="contenido-modal">
+      <div class="encabezado-modal">
+        <h2>Editar Usuario</h2>
+        <button type="button" class="cerrar-modal" data-modal-id="editUsuarioModal">&times;</button>
+      </div>
+      <hr class="linea-windows" />
+      <div class="cuerpo-modal">
+        <!-- El action se establecerá dinámicamente con JS -->
+        <form id="editUsuarioForm" method="POST" class="formulario"> 
+          <input type="hidden" name="_method" value="PUT"> <!-- Para method-override -->
+          <input type="hidden" id="edit_id_usuario" name="id_usuario">
+          <!-- Contenido del formulario de edición se cargará aquí por JS -->
+          <p class="text-center py-5">Cargando datos del usuario...</p> 
+          <!-- El pie del modal con botones se puede añadir aquí o dentro del JS que construye el form -->
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // --- Filtro de Tabla ---
+      const filtroInput = document.getElementById('filtroUsuarios');
+      const filasUsuarios = document.querySelectorAll('.tabla tbody .fila-usuario');
+
+      if (filtroInput) {
+        filtroInput.addEventListener('keyup', function () {
+          const textoFiltro = filtroInput.value.toLowerCase();
+          filasUsuarios.forEach(function (fila) {
+            const contenidoFila = fila.textContent.toLowerCase();
+            if (contenidoFila.includes(textoFiltro)) {
+              fila.style.display = '';
+            } else {
+              fila.style.display = 'none';
+            }
+          });
+        });
+      }
+      
+      // --- Manejo de Modales ---
+      const addUsuarioModal = document.getElementById('addUsuarioModal');
+      const editUsuarioModal = document.getElementById('editUsuarioModal');
+      const btnAbrirModalNuevoUsuario = document.getElementById('btnAbrirModalNuevoUsuario');
+      const btnsCerrarModal = document.querySelectorAll('.cerrar-modal');
+      const btnsEditarUsuario = document.querySelectorAll('.btnEditarUsuario');
+
+      if (btnAbrirModalNuevoUsuario && addUsuarioModal) {
+        btnAbrirModalNuevoUsuario.addEventListener('click', () => {
+          addUsuarioModal.style.display = 'flex';
+          // Opcional: Limpiar el formulario de añadir si se abre de nuevo
+          addUsuarioModal.querySelector('form').reset(); 
+          // Aquí podrías cargar dinámicamente los perfiles/roles si no se pasaron con EJS
+          // y no quieres que se cacheen del renderizado inicial.
+          // Ejemplo: fetch('/api/perfiles').then(res => res.json()).then(data => { /* poblar select#add_perfil_id */ });
+        });
+      }
+
+      btnsCerrarModal.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modalId = btn.getAttribute('data-modal-id');
+          const modalToClose = document.getElementById(modalId);
+          if (modalToClose) {
+            modalToClose.style.display = 'none';
+          }
+        });
+      });
+
+      // Cerrar modal si se hace clic fuera del contenido-modal
+      window.addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal')) {
+          event.target.style.display = 'none';
+        }
+      });
+
+      // --- Lógica para Abrir y Poblar Modal de Edición ---
+      btnsEditarUsuario.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const usuarioId = btn.getAttribute('data-id');
+          const editForm = document.getElementById('editUsuarioForm'); // El form ya existe
+          const editModalBody = editUsuarioModal.querySelector('.cuerpo-modal');
+          
+          // Establecer action del form (ya está en el HTML, pero podemos reconfirmar o ajustar si es necesario)
+          // editForm.action = `/admin/usuarios/actualizar/${usuarioId}`; // La acción ya está en el form que se genera
+          
+          // Limpiar contenido anterior y mostrar indicador de carga
+          editModalBody.innerHTML = `
+            <form id="editUsuarioForm" action="/admin/usuarios/actualizar/${usuarioId}" method="POST" class="formulario">
+              <input type="hidden" name="_method" value="PUT">
+              <input type="hidden" id="edit_id_usuario" name="id_usuario" value="${usuarioId}">
+              <p class="text-center py-5">Cargando datos del usuario...</p>
+              <div class="pie-modal">
+                <button type="submit" class="btn btn-success" disabled>Actualizar Usuario</button>
+                <button type="button" class="btn btn-secondary cerrar-modal" data-modal-id="editUsuarioModal">Cancelar</button>
+              </div>
+            </form>
+          `;
+          editUsuarioModal.style.display = 'flex';
+
+          try {
+            // TODO: Crear esta ruta en el backend que devuelva datos del usuario y lista de perfiles
+            const response = await fetch(`/admin/usuarios/datos-editar/${usuarioId}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Error al cargar datos del usuario.' }));
+                throw new Error(errorData.message || 'Error al cargar datos del usuario.');
+            }
+            const data = await response.json();
+            const usuario = data.usuario;
+            const perfiles = data.perfiles; // Backend debe enviar lista de todos los perfiles
+
+            let perfilOptions = perfiles.map(p => 
+                `<option value="${p.id}" ${parseInt(p.id) === parseInt(usuario.perfil_id) ? 'selected' : ''}>${p.perfil}</option>`
+            ).join('');
+            
+            // Reconstruir el formulario dentro del cuerpo del modal
+            const formHtml = `
+              <form id="editUsuarioForm" action="/admin/usuarios/actualizar/${usuario.id_usuario}" method="POST" class="formulario">
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" id="edit_id_usuario" name="id_usuario" value="${usuario.id_usuario}">
+                <fieldset>
+                  <legend>Datos del Usuario</legend>
+                  <div class="form-grid">
+                    <div><label for="edit_primer_nombre">Primer Nombre:</label><input type="text" id="edit_primer_nombre" name="primer_nombre" value="${usuario.primer_nombre || ''}" required /></div>
+                    <div><label for="edit_segundo_nombre">Segundo Nombre:</label><input type="text" id="edit_segundo_nombre" name="segundo_nombre" value="${usuario.segundo_nombre || ''}" /></div>
+                    <div><label for="edit_primer_apellido">Primer Apellido:</label><input type="text" id="edit_primer_apellido" name="primer_apellido" value="${usuario.primer_apellido || ''}" required /></div>
+                    <div><label for="edit_segundo_apellido">Segundo Apellido:</label><input type="text" id="edit_segundo_apellido" name="segundo_apellido" value="${usuario.segundo_apellido || ''}" /></div>
+                    <div>
+                      <label for="edit_tipo_documento">Tipo Documento:</label>
+                      <select id="edit_tipo_documento" name="tipo_documento" required>
+                        <option value="CC" ${usuario.tipo_documento === 'CC' ? 'selected' : ''}>Cédula Ciudadanía</option>
+                        <option value="CE" ${usuario.tipo_documento === 'CE' ? 'selected' : ''}>Cédula Extranjería</option>
+                        <option value="TI" ${usuario.tipo_documento === 'TI' ? 'selected' : ''}>Tarjeta de Identidad</option>
+                        <option value="PA" ${usuario.tipo_documento === 'PA' ? 'selected' : ''}>Pasaporte</option>
+                      </select>
+                    </div>
+                    <div><label for="edit_numero_documento">Número Documento:</label><input type="text" id="edit_numero_documento" name="numero_documento" value="${usuario.numero_documento || ''}" required /></div>
+                    <div class="full-width"><label for="edit_direccion_correo">Correo:</label><input type="email" id="edit_direccion_correo" name="direccion_correo" value="${usuario.direccion_correo || ''}" required /></div>
+                    <div><label for="edit_numero_celular">Celular:</label><input type="text" id="edit_numero_celular" name="numero_celular" value="${usuario.numero_celular || ''}" required /></div>
+                    <div>
+                        <label for="edit_estado">Estado:</label>
+                        <select id="edit_estado" name="estado" required>
+                            <option value="activo" ${usuario.estado === 'activo' ? 'selected' : ''}>Activo</option>
+                            <option value="inactivo" ${usuario.estado === 'inactivo' ? 'selected' : ''}>Inactivo</option>
+                        </select>
+                    </div>
+                    <div>
+                      <label for="edit_perfil_id">Rol (Perfil):</label>
+                      <select id="edit_perfil_id" name="perfil_id" required>${perfilOptions}</select>
+                    </div>
+                    <div class="full-width"><label for="edit_clave">Nueva Contraseña (dejar en blanco para no cambiar):</label><input type="password" id="edit_clave" name="clave" minlength="6" /></div>
+                  </div>
+                </fieldset>
+                <div class="pie-modal">
+                  <button type="submit" class="btn btn-success">Actualizar Usuario</button>
+                  <button type="button" class="btn btn-secondary cerrar-modal" data-modal-id="editUsuarioModal">Cancelar</button>
+                </div>
+</form>
+`;
+            editModalBody.innerHTML = formHtml;
+
+          } catch (err) {
+            console.error('Error al cargar datos para editar:', err);
+            // Asegurarse de que el formulario base exista para evitar errores si el fetch falla.
+            const errorFormHtml = `
+              <form id="editUsuarioForm" method="POST" class="formulario">
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" id="edit_id_usuario" name="id_usuario">
+                <p class="alert alert-danger">No se pudieron cargar los datos del usuario. ${err.message || 'Intente de nuevo.'}</p>
+                <div class="pie-modal">
+                  <button type="button" class="btn btn-secondary cerrar-modal" data-modal-id="editUsuarioModal">Cancelar</button>
+                </div>
+              </form>
+            `;
+            editModalBody.innerHTML = errorFormHtml;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

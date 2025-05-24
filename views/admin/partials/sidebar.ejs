@@ -1,0 +1,14 @@
+<!-- views/admin/partials/sidebar.ejs -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <span class="logo-text">Parqueadero</span>
+        <!-- Podrías tener un logo aquí: <img src="/img/logo.png" alt="Logo" class="logo-img"> -->
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="/dashboard" class="<%= typeof activeMenu !== 'undefined' && activeMenu === 'dashboard' ? 'active' : '' %>"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+        <li><a href="/admin/usuarios" class="<%= typeof activeMenu !== 'undefined' && activeMenu === 'usuarios' ? 'active' : '' %>"><i class="fas fa-users"></i><span>Usuarios</span></a></li>
+        <li><a href="/admin/vehiculos" class="<%= typeof activeMenu !== 'undefined' && activeMenu === 'vehiculos' ? 'active' : '' %>"><i class="fas fa-car"></i><span>Vehículos</span></a></li>
+        <li><a href="/admin/configuracion" class="<%= typeof activeMenu !== 'undefined' && activeMenu === 'configuracion' ? 'active' : '' %>"><i class="fas fa-cog"></i><span>Configuración</span></a></li>
+        <!-- Añade más enlaces según necesites -->
+    </ul>
+</aside>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
+    <style> /* Estilos similares a register.ejs */ </style>
+</head>
+<body>
+    <h1>Iniciar Sesión</h1>
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+        <div>
+            <strong>Errores:</strong>
+            <ul>
+                <% errors.forEach(function(error) { %>
+                    <li><%= error.msg %></li>
+                <% }); %>
+            </ul>
+        </div>
+    <% } %>
+    <form action="/api/auth/login" method="POST">
+        <div>
+            <label for="correo_electronico">Correo Electrónico:</label>
+            <input type="email" id="correo_electronico" name="correo_electronico" value="<%= typeof oldInput !== 'undefined' ? oldInput.correo_electronico : '' %>" required>
+        </div>
+        <div>
+            <label for="clave">Contraseña:</label>
+            <input type="password" id="clave" name="clave" required>
+        </div>
+        <button type="submit">Iniciar Sesión</button>
+    </form>
+    <p>¿No tienes cuenta? <a href="/api/auth/register">Regístrate aquí</a></p>
+</body>
+</html>

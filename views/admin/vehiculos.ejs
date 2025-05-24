@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Gestión de Vehículos' %></title>
+  <link rel="stylesheet" href="/css/estilo.css">
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body>
+  <%- include('./partials/sidebar', { activeMenu: activeMenu }) %>
+  <%- include('./partials/navbar', { user: user, title: title }) %>
+
+  <!-- Contenido Principal -->
+  <main class="contenido-principal">
+
+  <div class="encabezado-pagina mb-4">
+        <h1><%= typeof title !== 'undefined' ? title : 'Gestión de Vehículos' %></h1>
+        <button type="button" id="btnAbrirModalNuevoVehiculo" class="btn btn-primary">
+          <i class="fas fa-plus"></i> Añadir Vehículo
+        </button>
+      </div>
+
+      <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
+        <div class="alert alert-success" role="alert">
+          <%= success_msg %>
+        </div>
+      <% } %>
+      <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
+        <div class="alert alert-danger" role="alert">
+          <%= error_msg %>
+        </div>
+      <% } %>
+      
+      <div class="filtros-tabla mb-3">
+        <input type="text" id="filtroVehiculos" class="form-control" placeholder="Filtrar vehículos por placa, marca, propietario...">
+      </div>
+
+    <div class="contenedor">
+    
+
+      <div class="card">
+        <div class="card-header">
+          Lista de Vehículos Registrados
+        </div>
+        <div class="card-body">
+          <% if (typeof vehiculos !== 'undefined' && vehiculos && vehiculos.length > 0) { %>
+            <table class="tabla">
+              <thead>
+                <tr>
+                  <th>Placa</th>
+                  <th>Marca</th>
+                  <th>Modelo</th>
+                  <th>Color</th>
+                  <th>Tipo</th>
+                  <th>Propietario</th>
+                  <th>Nombre</th>
+                  <th>Documento</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% vehiculos.forEach(function(vehiculo) { %>
+                  <tr class="fila-vehiculo">
+                    <td><%= vehiculo.placa %></td>
+                    <td><%= vehiculo.marca || '-' %></td>
+                    <td><%= vehiculo.modelo || '-' %></td>
+                    <td><%= vehiculo.color || '-' %></td>
+                    <td><%= vehiculo.tipo || '-' %></td>
+                    <td><%= vehiculo.propietario_nombre ? (vehiculo.propietario_nombre + ' ' + vehiculo.propietario_apellido) : 'N/A' %> (<%= vehiculo.propietario_documento || 'N/A' %>)</td>
+                    <td>
+                      <%= vehiculo.propietario_nombre ? (vehiculo.propietario_nombre + ' ' + (vehiculo.propietario_apellido || '')) : 'N/A' %>
+                      </td>
+                    <td>
+                      (<%= vehiculo.propietario_documento || 'Sin Documento' %>)
+                    </td>
+
+                    <td>
+                      <button type="button" class="btn btn-agregar botones-min" 
+                              data-id="<%= vehiculo.id %>" title="Editar">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <form action="/admin/vehiculos/eliminar/<%= vehiculo.id %>?_method=DELETE" method="POST" style="display: inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este vehículo?');">
+                        <button type="submit" class="btn btn-eliminar botones-min" title="Eliminar">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <p>No hay vehículos registrados.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal para Añadir Nuevo Vehículo -->
+  <div id="addVehiculoModal" class="modal">
+    <div class="contenido-modal">
+      <div class="encabezado-modal">
+        <h2>Añadir Nuevo Vehículo</h2>
+        <button type="button" class="cerrar-modal" data-modal-id="addVehiculoModal">&times;</button>
+      </div>
+      <hr class="linea-windows" />
+      <div class="cuerpo-modal">
+        <form action="/admin/vehiculos" method="POST" class="formulario">
+          <fieldset>
+            <legend>Datos del Vehículo</legend>
+            <div class="form-grid">
+              <div>
+                <label for="add_placa">Placa:</label>
+                <input type="text" id="add_placa" name="placa" required />
+              </div>
+              <div>
+                <label for="add_marca">Marca:</label>
+                <input type="text" id="add_marca" name="marca" />
+              </div>
+              <div>
+                <label for="add_modelo">Modelo:</label>
+                <input type="text" id="add_modelo" name="modelo" />
+              </div>
+              <div>
+                <label for="add_color">Color:</label>
+                <input type="text" id="add_color" name="color" />
+              </div>
+              <div>
+                <label for="add_tipo_vehiculo">Tipo de Vehículo:</label>
+                <select id="add_tipo_vehiculo" name="tipo">
+                  <option value="">Seleccione Tipo...</option>
+                  <option value="Carro">Carro</option>
+                  <option value="Moto">Moto</option>
+                  <option value="Bicicleta">Bicicleta</option>
+                  <option value="Institucional">Institucional</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div>
+                <label for="add_usuario_id">Propietario (Usuario):</label>
+                <select id="add_usuario_id" name="usuario_id" required>
+                  <option value="">Seleccione Propietario...</option>
+                  <% if (typeof todosLosUsuarios !== 'undefined' && todosLosUsuarios) { %>
+                    <% todosLosUsuarios.forEach(function(u) { %>
+                      <option value="<%= u.id_usuario %>"><%= u.primer_nombre %> <%= u.primer_apellido %> (<%= u.numero_documento %>)</option>
+                    <% }); %>
+                  <% } else { %>
+                    <option value="" disabled>No hay usuarios para seleccionar (cargar desde backend)</option>
+                  <% } %>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+          <div class="pie-modal">
+            <button type="submit" class="btn btn-success">Guardar Vehículo</button>
+            <button type="button" class="btn btn-secondary cerrar-modal" data-modal-id="addVehiculoModal">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Editar Vehículo -->
+  <div id="editVehiculoModal" class="modal">
+    <div class="contenido-modal">
+      <div class="encabezado-modal">
+        <h2>Editar Vehículo</h2>
+        <button type="button" class="cerrar-modal" data-modal-id="editVehiculoModal">&times;</button>
+      </div>
+      <hr class="linea-windows" />
+      <div class="cuerpo-modal">
+        <form id="editVehiculoForm" method="POST" class="formulario"> 
+          <input type="hidden" name="_method" value="PUT">
+          <input type="hidden" id="edit_id_vehiculo" name="id_vehiculo">
+          <p class="text-center py-5">Cargando datos del vehículo...</p> 
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // --- Filtro de Tabla ---
+      const filtroInput = document.getElementById('filtroVehiculos');
+      const filasVehiculos = document.querySelectorAll('.tabla tbody .fila-vehiculo');
+
+      if (filtroInput) {
+        filtroInput.addEventListener('keyup', function () {
+          const textoFiltro = filtroInput.value.toLowerCase();
+          filasVehiculos.forEach(function (fila) {
+            const contenidoFila = fila.textContent.toLowerCase();
+            if (contenidoFila.includes(textoFiltro)) {
+              fila.style.display = '';
+            } else {
+              fila.style.display = 'none';
+            }
+          });
+        });
+      }
+      
+      // --- Manejo de Modales ---
+      const addVehiculoModal = document.getElementById('addVehiculoModal');
+      const editVehiculoModal = document.getElementById('editVehiculoModal');
+      const btnAbrirModalNuevoVehiculo = document.getElementById('btnAbrirModalNuevoVehiculo');
+      const btnsCerrarModal = document.querySelectorAll('.cerrar-modal');
+      const btnsEditarVehiculo = document.querySelectorAll('.btnEditarVehiculo');
+
+      if (btnAbrirModalNuevoVehiculo && addVehiculoModal) {
+        btnAbrirModalNuevoVehiculo.addEventListener('click', () => {
+          addVehiculoModal.style.display = 'flex';
+          addVehiculoModal.querySelector('form').reset(); 
+          
+        });
+      }
+
+      btnsCerrarModal.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const modalId = btn.getAttribute('data-modal-id');
+          const modalToClose = document.getElementById(modalId);
+          if (modalToClose) {
+            modalToClose.style.display = 'none';
+          }
+        });
+      });
+
+      window.addEventListener('click', (event) => {
+        if (event.target.classList.contains('modal')) {
+          event.target.style.display = 'none';
+        }
+      });
+
+
+      btnsEditarVehiculo.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const vehiculoId = btn.getAttribute('data-id');
+          const editModalBody = editVehiculoModal.querySelector('.cuerpo-modal');
+          
+          editModalBody.innerHTML = `
+            <form id="editVehiculoForm" action="/admin/vehiculos/actualizar/${vehiculoId}" method="POST" class="formulario">
+              <input type="hidden" name="_method" value="PUT">
+              <input type="hidden" id="edit_id_vehiculo" name="id_vehiculo" value="${vehiculoId}">
+              <p class="text-center py-5">Cargando datos del vehículo...</p>
+              <div class="pie-modal">
+                <button type="submit" class="btn btn-success" disabled>Actualizar Vehículo</button>
+                <button type="button" class="btn btn-secondary cerrar-modal" data-modal-id="editVehiculoModal">Cancelar</button>
+              </div>
+            </form>
+          `;
+          editVehiculoModal.style.display = 'flex';
+
+          try {
+            // Backend debe implementar esta ruta: GET /admin/vehiculos/datos-editar/:id
+            // Debe devolver { vehiculo: {...}, todosLosUsuarios: [...] }
+            const response = await fetch(`/admin/vehiculos/datos-editar/${vehiculoId}`);
+            if (!response.ok) throw new Error('Error al cargar datos del vehículo.');
+            const data = await response.json();
+            const vehiculo = data.vehiculo;
+            const todosLosUsuarios = data.todosLosUsuarios;
+
+            let propietarioOptionsHtml = todosLosUsuarios.map(u => 
+                `<option value="${u.id_usuario}" ${parseInt(u.id_usuario) === parseInt(vehiculo.usuario_id) ? 'selected' : ''}>
+                  ${u.primer_nombre} ${u.primer_apellido} (${u.numero_documento})
+                </option>`
+            ).join('');
+
+            const formHtml = `
+              <form id="editVehiculoForm" action="/admin/vehiculos/actualizar/${vehiculo.id}" method="POST" class="formulario">
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" id="edit_id_vehiculo" name="id_vehiculo" value="${vehiculo.id}">
+                <fieldset>
+                  <legend>Datos del Vehículo</legend>
+                  <div class="form-grid">
+                    <div><label for="edit_placa">Placa:</label><input type="text" id="edit_placa" name="placa" value="${vehiculo.placa || ''}" required /></div>
+                    <div><label for="edit_marca">Marca:</label><input type="text" id="edit_marca" name="marca" value="${vehiculo.marca || ''}" /></div>
+                    <div><label for="edit_modelo">Modelo:</label><input type="text" id="edit_modelo" name="modelo" value="${vehiculo.modelo || ''}" /></div>
+                    <div><label for="edit_color">Color:</label><input type="text" id="edit_color" name="color" value="${vehiculo.color || ''}" /></div>
+                    <div>
+                      <label for="edit_tipo_vehiculo">Tipo:</label>
+                      <select id="edit_tipo_vehiculo" name="tipo">
+                        <option value="Carro" ${vehiculo.tipo === 'Carro' ? 'selected' : ''}>Carro</option>
+                        <option value="Moto" ${vehiculo.tipo === 'Moto' ? 'selected' : ''}>Moto</option>
+                        <option value="Bicicleta" ${vehiculo.tipo === 'Bicicleta' ? 'selected' : ''}>Bicicleta</option>
+                        <option value="Institucional" ${vehiculo.tipo === 'Institucional' ? 'selected' : ''}>Institucional</option>
+                        <option value="Otro" ${vehiculo.tipo === 'Otro' ? 'selected' : ''}>Otro</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label for="edit_usuario_id">Propietario:</label>
+                      <select id="edit_usuario_id" name="usuario_id" required>${propietarioOptionsHtml}</select>
+                    </div>
+                  </div>
+                </fieldset>
+                <div class="pie-modal">
+                  <button type="submit" class="btn btn-success">Actualizar Vehículo</button>
+                  <button type="button" class="btn btn-secondary cerrar-modal" data-modal-id="editVehiculoModal">Cancelar</button>
+                </div>
+              </form>
+            `;
+            editModalBody.innerHTML = formHtml;
+
+          } catch (err) {
+            console.error('Error al cargar datos del vehículo para editar:', err);
+            editModalBody.innerHTML = `<p class="alert alert-danger">No se pudieron cargar los datos del vehículo. ${err.message || 'Intente de nuevo.'}</p>
+            <div class="pie-modal"><button type="button" class="btn btn-secondary cerrar-modal" data-modal-id="editVehiculoModal">Cancelar</button></div>`;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
